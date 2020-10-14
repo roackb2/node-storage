@@ -1,6 +1,7 @@
 var fs = require('fs');
 var async = require('async');
 var mkdirp = require('mkdirp');
+var jsonFix = require('json-fixer')
 
 
 function isObject(obj) {
@@ -166,19 +167,21 @@ Storage.prototype._doBackup = function(cb) {
 };
 
 Storage.prototype._load = function() {
-  var data;
-
   try {
-    data = JSON.parse(fs.readFileSync(this.filename));
+    let content = fs.readFileSync(this.filename, 'utf-8')
+    // Jay/Fienna Liang - strip anything before beginning big parantheses & after ending big parantheses
+    let stripped = content.substring(content.indexOf("{"));
+    stripped = stripped.substring(0, stripped.lastIndexOf("}") + 1);
+    // Jay/Fienna Liang - try to fix malformatted json file
+    let {data, changed} = jsonFix(stripped)
+    return data;
   } catch (e) {
     if (e.code !== 'ENOENT') {
       throw e;
     }
 
-    data = {};
+    return {};
   }
-
-  return data;
 };
 
 Storage.prototype._fileMustNotExist = function(file, cb) {
