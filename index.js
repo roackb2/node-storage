@@ -114,12 +114,13 @@ Storage.prototype._persist = function(cb) {
   var _data = JSON.stringify(self.store);
 
   async.series([
-    async.apply(self._fileMustNotExist, self.tempFilename),
-    async.apply(self._fileMustNotExist, self.backupFilename),
+    // async.apply(self._fileMustNotExist, self.tempFilename),
+    // async.apply(self._fileMustNotExist, self.backupFilename),
     async.apply(self._doBackup.bind(self)),
+    // async.apply(self.writeData, self.filename, _data),
     async.apply(self.writeData, self.tempFilename, _data),
     async.apply(fs.rename, self.tempFilename, self.filename),
-    async.apply(self._fileMustNotExist, self.backupFilename)
+    // async.apply(self._fileMustNotExist, self.backupFilename)
   ], cb);
 };
 
@@ -158,7 +159,9 @@ Storage.prototype._doBackup = function(cb) {
       return cb(null);
     }
 
-    fs.rename(self.filename, self.backupFilename, cb);
+    // fs.rename(self.filename, self.backupFilename, cb);
+    // markpeng - use copy instead of rename
+    fs.copyFile(self.filename, self.backupFilename, cb);
   });
 };
 
@@ -184,9 +187,10 @@ Storage.prototype._fileMustNotExist = function(file, cb) {
       return cb(null);
     }
 
-    fs.unlink(file, function(err) {
-      return cb(err);
-    });
+    // markpeng - don't do delete if found
+    // fs.unlink(file, function(err) {
+    //   return cb(err);
+    // });
   });
 };
 
